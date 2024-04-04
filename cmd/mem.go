@@ -4,10 +4,12 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -23,9 +25,24 @@ var memCmd = &cobra.Command{
 		fmt.Println("Reserved: ", " : ", MBToReserve, "mb")
 		fmt.Println("Press Ctrl+C to abort this operation")
 
-		for i := range a {
-			a[i] = 0x99
-		}
+		ctx := context.Background()
+		newCtx, cancelFunc := context.WithCancel(ctx)
+		go func(innerCtx context.Context) {
+			for {
+				select {
+				case <-ctx.Done():
+					fmt.Println("Done.")
+					return
+				default:
+					for i := range a {
+						a[i] = 0x99
+					}
+				}
+				fmt.Println("Sleep 10 Second before reserving the next 500mb")
+				time.Sleep(10 * time.Second)
+			}
+
+		}(newCtx)
 
 		// Gracefully Shutdown
 		// Make channel listen for signals from OS
@@ -34,6 +51,8 @@ var memCmd = &cobra.Command{
 		signal.Notify(gracefulStop, syscall.SIGINT)
 
 		<-gracefulStop
+
+		cancelFunc()
 	},
 }
 
