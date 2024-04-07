@@ -38,7 +38,7 @@ var memCmd = &cobra.Command{
 						a[i] = 0x99
 					}
 				}
-				fmt.Println("Sleep 60 Second before reserving the next 500mb")
+				fmt.Println("Sleep 60 Second before reserving the next ", MBToReserve, " mb")
 				time.Sleep(60 * time.Second)
 			}
 
